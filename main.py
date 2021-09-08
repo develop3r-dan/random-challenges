@@ -121,24 +121,61 @@
 
 ######### PROBLEM 3 ###############
 
+######### PROBLEM 5 ###############
+from bs4 import BeautifulSoup
+import requests
+import csv
+
+headers = {'User-Agent': 'Mozilla/5.0'}
+
+req = requests.get(url="https://www.amazon.com/Best-Sellers-Kindle-Store/zgbs/digital-text", headers=headers)
+html = req.text
 
 
+soup = BeautifulSoup(html, 'html.parser')
 
+big_soup = soup.select('#zg-ordered-list .zg-item-immersion')
 
+results = []
 
+def check_if_has_brackets(name):
+    if '(' in name:
+        return True
+    else:
+        return False
 
+print(float(big_soup[0].select('span div .zg-item .a-row .a-link-normal span span')[0].text.replace('$',"")))
 
+for index in range(0,len(big_soup)):
+    title = big_soup[index].select('div .p13n-sc-line-clamp-1')[0].text.strip()
+    ratings = float(big_soup[index].select('span div span .a-icon-row a i span')[0].text.strip()[0:3])
+    try:
+        authors = big_soup[index].select('span div .zg-item .a-row .a-size-small')[0].text.strip()
+    except IndexError:
+        authors = None
+    try:
+        price = float(float(big_soup[index].select('span div .zg-item .a-row .a-link-normal span span')[0].text.replace('$',"")))
+    except IndexError:
+        price = None
 
+    if check_if_has_brackets(title):
+        index_of_bracket = title.find(' (')
+        title = title[0:index_of_bracket]
 
+    book_object = {'rank':index+1,
+                    'title':title,
+                   'ratings':ratings,
+                   'author':authors,
+                   'price':price
+                   }
+    results.append(book_object)
 
+print(results)
+with open('A2_books.csv', "w") as csv_file:
+    headers = ['rank','title', 'ratings', 'author','price']
+    csvwriter = csv.DictWriter(csv_file, fieldnames=headers)
+    csvwriter.writeheader()
+    for row in results:
+        csvwriter.writerow(row)
 
-
-
-
-
-
-
-
-
-
-
+######### PROBLEM 5 ###############
